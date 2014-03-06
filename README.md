@@ -9,4 +9,4 @@ $ npm install
 $ node app.js
 ```
 
-Open two browser windows to ```http:localhost:3000``` and drag around to see the magic happen.
+Open two browser windows to ```http://localhost:3000``` and drag around to see the magic happen.
