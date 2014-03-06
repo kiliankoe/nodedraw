@@ -39,7 +39,19 @@ var io = require ('socket.io').listen(server, function() {
 
 // socket.io magic
 io.sockets.on('connection', function (socket){
-	socket.on('drawCircle', function(data,session) {
-		socket.broadcast.emit('drawCircle',data);
+	// socket.on('drawCircle', function(data,session) {
+	// 	socket.broadcast.emit('drawCircle',data);
+	// });
+
+	socket.on('drawPathDown', function(data,session) {
+		socket.broadcast.emit('drawPathDown',data);
+	});
+
+	socket.on('drawPathDrag', function(data,session) {
+		socket.broadcast.emit('drawPathDrag',data);
+	});
+
+	socket.on('drawPathUp', function(data,session){
+		socket.broadcast.emit('drawPathUp',data);
 	});
 });

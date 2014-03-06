@@ -1,4 +1,4 @@
-tool.maxDistance = 50;
+tool.maxDistance = 100;
 
 function randomColor() {
 	return {
@@ -9,40 +9,101 @@ function randomColor() {
 	};
 }
 
-function onMouseDrag(event) {
-	var x = event.middlePoint.x;
-	var y = event.middlePoint.y;
+var darkgrey = {
+		red: 0.1,
+		green: 0.1,
+		blue: 0.1,
+		alpha: 0.9
+};
 
-	var radius = event.delta.length / 2;
-
-	var color = randomColor();
-
-	drawCircle(x,y,radius,color);
-
-	emitCircle(x,y,radius,color);	
+function onMouseDown(e) {
+	var point = e.point;
+	drawPathDown(point);
+	emitPathDown(point);
 }
 
-function drawCircle(x,y,radius,color) {
-	var circle = new Path.Circle(new Point(x,y), radius);
-	circle.fillColor = new RgbColor(color.red, color.green, color.blue, color.alpha);
+function drawPathDown(point){
+	console.log(point);
+	path = new Path();
+	path.fillColor = darkgrey;
+	path.add(point);
 	view.draw();
 }
 
-function emitCircle(x,y,radius,color){
-	var sessionId = io.socket.sessionid;
+function onMouseDrag(e) {
+	var step = e.delta / 2;
+	step.angle += 10;
+	var top = e.middlePoint + step;
+	var bottom = e.middlePoint - step;
 
-	var data = {
-		x: x,
-		y: y,
-		radius: radius,
-		color: color	
-	};
-
-	io.emit('drawCircle', data, sessionId);
+	drawPathDrag(top,bottom);
+	emitPathDrag(top,bottom);
 }
+
+function drawPathDrag(top,bottom) {
+	console.log(top,bottom);
+	path.add(top);
+	path.insert(0,bottom);
+	path.smooth();
+	view.draw();
+}
+
+function onMouseUp(e) {
+	var point = e.point;
+	drawPathUp(point);
+	emitPathUp(point);
+}
+
+function drawPathUp(point) {
+	console.log(point);
+	path.add(point);
+	path.closed = true;
+	path.smooth();
+	view.draw();
+}
+
+
+
+
+function emitPathDown(point) {
+	var sessionId = io.socket.sessionid;
+	var data = {
+		point: point
+	};
+	io.emit('drawPathDown', data, sessionId);
+}
+
+function emitPathDrag(top,bottom) {
+	var sessionId = io.socket.sessionid;
+	var data = {
+		top: top,
+		bottom: bottom
+	};
+	io.emit('drawPathDrag', data, sessionId);
+}
+
+function emitPathUp(point) {
+	var sessionId = io.socket.sessionid;
+	var data = {
+		point: point
+	};
+	io.emit('drawPathUp', data, sessionId);
+}
+
 
 io = io.connect('/');
 
-io.on('drawCircle', function(data){
-	drawCircle(data.x, data.y, data.radius, data.color);
+io.on('drawPathDown', function(data){
+	var json = {
+		point: data.point
+	};
+	drawPathDown(json.point);
+});
+
+io.on('drawPathDrag', function(data){
+	drawPathDrag(data.top,data.bottom);
+});
+
+io.on('drawPathUp', function(data){
+	drawPathUp(data.point);
 });
